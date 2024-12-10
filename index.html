@@ -1,29 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Country API</title>
-    <link rel="stylesheet" href="style.css">
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay Slip</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      width: 80%;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header img {
+      width: 100px;
+    }
+    .header h1 {
+      font-size: 20px;
+      margin: 5px 0;
+    }
+    .header p {
+      font-size: 16px;
+      color: #555;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f9f9f9;
+    }
+    .totals-row {
+      font-weight: bold;
+      background-color: #f1f1f1;
+    }
+    .input-section {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .input-section input {
+      padding: 10px;
+      font-size: 16px;
+      width: 30%;
+      margin-right: 10px;
+    }
+    .input-section button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .input-section button:hover {
+      background-color: #0056b3;
+    }
+    .download-btn {
+      display: block;
+      width: 200px;
+      margin: 20px auto;
+      text-align: center;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .download-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-    <div class="main">
-        <div class="center">
-            <div class="first">
-                <form onsubmit="getAPIdata();return false">
-                    <input type="search"placeholder="ENTER COUNTRY NAME" id="search">
-                    <button type="submit">search</button>
-                </form>
-            </div>
-            <div class="second">
-
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <img src="" alt="Company Logo">
+      <h1>ABC Infocom Solution Pvt Ltd</h1>
+      <p>Pay Slip for the Month of <span id="month"></span></p> <!-- Dynamic Month -->
     </div>
 
+    <div class="input-section">
+      <input type="text" id="employee-id" placeholder="Enter Employee ID">
+      <button onclick="fetchDetails()">Get Details</button>
+    </div>
 
+    <table>
+      <tr>
+        <th>Employee ID</th>
+        <td id="emp-id"></td>
+        <th>Bank Name</th>
+        <td id="bank-name"></td>
+      </tr>
+      <tr>
+        <th>Employee Name</th>
+        <td id="emp-name"></td>
+        <th>Account Number</th>
+        <td id="account-no"></td>
+      </tr>
+      <tr>
+        <th>Designation</th>
+        <td id="designation"></td>
+        <th>Total Working Days</th>
+        <td>30</td> <!-- Fixed Working Days -->
+      </tr>
+      <tr>
+        <th>Department</th>
+        <td id="department"></td>
+        <th>Leaves</th>
+        <td><input type="number" id="leaves" oninput="calculatePaidDays()" style="width: 100%;"></td>
+      </tr>
+      <tr>
+        <th>Date of Joining</th>
+        <td id="doj"></td>
+        <th>Paid Days</th>
+        <td id="paid-days"></td>
+      </tr>
+    </table>
 
-    <script src="basic.js"></script>
+    <table>
+      <thead>
+        <tr>
+          <th colspan="2">Earnings</th>
+          <th colspan="2">Deductions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Basic</td>
+          <td id="basic"></td>
+          <td>ESI</td>
+          <td id="esi">0</td>
+        </tr>
+        <tr>
+          <td>HRA</td>
+          <td id="hra"></td>
+          <td>Professional Tax</td>
+          <td id="tax">0</td>
+        </tr>
+        <tr>
+          <td>Travel Allowance</td>
+          <td id="travel"></td>
+          <td colspan="2"></td>
+        </tr>
+        <tr>
+          <td>Medical Allowance</td>
+          <td id="medical"></td>
+          <td colspan="2"></td>
+        </tr>
+        <tr>
+          <td>Special Allowance</td>
+          <td id="special"></td>
+          <td colspan="2"></td>
+        </tr>
+        <tr>
+          <td>Gross Wages</td>
+          <td id="gross-wages"></td>
+          <td>LOP Days</td>
+          <td id="lop-days"></td>
+        </tr>
+        <tr class="totals-row">
+          <td>Total Earnings</td>
+          <td id="total-earnings"></td>
+          <td>Total Deductions</td>
+          <td id="total-deductions">0</td>
+        </tr>
+        <tr class="totals-row">
+          <td colspan="2">Net Salary</td>
+          <td colspan="2" id="net-salary"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <a href="#" class="download-btn" id="download">Download as PDF</a>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <script>
+    const employeeData = {
+      "E12345": {
+        name: "John Doe",
+        designation: "Software Engineer",
+        department: "IT",
+        doj: "01-Jan-2020",
+        bankName: "ABC Bank",
+        accountNo: "1234567890",
+        earnings: { basic: 20000, hra: 10000, travel: 5000, medical: 2000, special: 3000 },
+      },
+    };
+
+    function fetchDetails() {
+      const empId = document.getElementById("employee-id").value;
+      const employee = employeeData[empId];
+
+      if (employee) {
+        document.getElementById("emp-id").innerText = empId;
+        document.getElementById("emp-name").innerText = employee.name;
+        document.getElementById("designation").innerText = employee.designation;
+        document.getElementById("department").innerText = employee.department;
+        document.getElementById("doj").innerText = employee.doj;
+        document.getElementById("bank-name").innerText = employee.bankName;
+        document.getElementById("account-no").innerText = employee.accountNo;
+
+        calculatePaidDays();
+      } else {
+        alert("Employee ID not found.");
+      }
+    }
+
+    function calculatePaidDays() {
+      const leaves = parseInt(document.getElementById("leaves").value || 0);
+      const paidDays = Math.max(30 - leaves, 0);  // Fixed working days are 30
+
+      document.getElementById("paid-days").innerText = paidDays;
+      document.getElementById("lop-days").innerText = leaves;
+
+      calculateSalary(paidDays);
+    }
+
+    function calculateSalary(paidDays) {
+      const employee = employeeData[document.getElementById("employee-id").value];
+      if (!employee) return;
+
+      const proratedEarnings = {};
+      let grossWages = 0;
+
+      for (const key in employee.earnings) {
+        proratedEarnings[key] = (employee.earnings[key] * paidDays) / 30; // Fixed to 30 days
+        document.getElementById(key).innerText = proratedEarnings[key].toFixed(2);
+        grossWages += proratedEarnings[key];
+      }
+
+      document.getElementById("gross-wages").innerText = grossWages.toFixed(2);
+      document.getElementById("total-earnings").innerText = grossWages.toFixed(2);
+
+      const totalDeductions = 0;  // Hardcoded deductions
+      document.getElementById("total-deductions").innerText = totalDeductions.toFixed(2);
+
+      const netSalary = grossWages - totalDeductions;
+      document.getElementById("net-salary").innerText = netSalary.toFixed(2);
+    }
+
+    function getCurrentMonth() {
+      const date = new Date();
+      const options = { month: 'long', year: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    document.getElementById("month").innerText = getCurrentMonth();
+
+    document.getElementById("download").addEventListener("click", function () {
+      const element = document.querySelector(".container");
+      const opt = {
+        margin: 0.5,
+        filename: "Pay_Slip.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      };
+      html2pdf().set(opt).from(element).save();
+    });
+  </script>
 </body>
 </html>
